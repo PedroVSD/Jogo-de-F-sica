@@ -11,15 +11,15 @@ TELA = pygame.display.set_mode((LARGURA, ALTURA))
 pygame.display.set_caption("Mover Imagem com Fundo Estático")
 
 # Carregar a imagem de fundo
-fundo = pygame.image.load("D:\\Cursos\\Projetos\\Jogo-fisica\\imagem.png")  # Substitua por sua imagem de fundo
+fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\imagem.png")  # Substitua por sua imagem de fundo
 fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
 
 # Carregar a imagem móvel
-imagem = pygame.image.load("D:\\Cursos\\Projetos\\Jogo-fisica\\este.jpg")  # Substitua por sua imagem
+imagem = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\este.jpg")  # Substitua por sua imagem
 imagem = pygame.transform.scale(imagem, (100, 100))  # Redimensiona para 100x100 pixels
 
 # Carregar a imagem da lupa
-imagem_lupa = pygame.image.load("D:\\Cursos\\Projetos\\Jogo-fisica\\lupa.png")  # Substitua por sua imagem
+imagem_lupa = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\lupa.png")  # Substitua por sua imagem
 imagem_lupa = pygame.transform.scale(imagem_lupa, (25, 25))  # Redimensiona para 25x25 pixels
 
 # Definir a opacidade inicial da lupa
@@ -51,10 +51,14 @@ def esta_no_raio_interacao(mouse_x, mouse_y, lupa_x, lupa_y, raio):
 
 # Variáveis para a janela de pergunta
 pergunta_ativa = False
-pergunta = "Qual é a capital da França?"
-resposta_correta = "Paris"
+pergunta = "Determine a força elétrica entre duas cargas de q1=2μC q2=-3μC, separadas por uma distância de d=0.5m"
+resposta_correta = "0.216"
 resposta_usuario = ""
 contador = 0
+mensagem_correta = False  # Indica se a mensagem "Resposta correta!" deve ser exibida
+tempo_mensagem = 0        # Temporizador para exibir a mensagem (em milissegundos)
+DURACAO_MENSAGEM = 2000   # Tempo de exibição da mensagem (2 segundos)
+
 
 # Loop principal do jogo
 rodando = True
@@ -89,6 +93,9 @@ while rodando:
             if evento.key == pygame.K_RETURN:  # Quando pressionar Enter
                 if resposta_usuario.lower() == resposta_correta.lower():  # Verifica se a resposta está correta
                     contador += 1  # Incrementa o contador
+                    mensagem_correta = True  # Ativa a exibição da mensagem
+                    tempo_mensagem = pygame.time.get_ticks()  # Armazena o tempo atual
+                    print("Resposta correta!")
                 pergunta_ativa = False  # Fecha a janela de pergunta
             elif evento.key == pygame.K_BACKSPACE:
                 resposta_usuario = resposta_usuario[:-1]  # Apaga um caractere
@@ -130,6 +137,15 @@ while rodando:
     font = pygame.font.Font(None, 36)
     texto_contador = font.render(f"Contador: {contador}", True, (255, 255, 255))
     TELA.blit(texto_contador, (10, 10))
+
+    if mensagem_correta:
+        font = pygame.font.Font(None, 36)
+        texto_mensagem = font.render("Resposta correta!", True, (0, 255, 0))  # Texto em verde
+        TELA.blit(texto_mensagem, (10, 50))  # Desenha abaixo do contador
+
+        # Verifica se o tempo de exibição já passou
+        if pygame.time.get_ticks() - tempo_mensagem > DURACAO_MENSAGEM:
+            mensagem_correta = False  # Para de exibir a mensagem
 
     # Atualizar a tela
     pygame.display.flip()
