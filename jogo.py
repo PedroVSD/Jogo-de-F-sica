@@ -6,54 +6,65 @@ import math
 pygame.init()
 
 # Configurações da tela
-LARGURA, ALTURA = 800, 600
+LARGURA, ALTURA = 1024, 1024
 TELA = pygame.display.set_mode((LARGURA, ALTURA))
 pygame.display.set_caption("Mover Imagem com Fundo Estático")
 
 # Carregar a imagem de fundo
-fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\imagem.png")  # Substitua por sua imagem de fundo
+fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Fisica_Quarto.png")  # Substitua por sua imagem de fundo
 fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
 
-# Carregar a imagem móvel
-imagem = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\este.jpg")  # Substitua por sua imagem
-imagem = pygame.transform.scale(imagem, (100, 100))  # Redimensiona para 100x100 pixels
 
 # Carregar a imagem da lupa
-imagem_lupa = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\lupa.png")  # Substitua por sua imagem
-imagem_lupa = pygame.transform.scale(imagem_lupa, (25, 25))  # Redimensiona para 25x25 pixels
+lupa_Iteracao = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\lupa.png")  # Substitua por sua imagem
+lupa_Iteracao = pygame.transform.scale(lupa_Iteracao, (25, 25))  # Redimensiona para 25x25 pixels
+lupa_Iteracao.set_alpha(0)  # 0 é totalmente transparente inicialmente
 
-# Definir a opacidade inicial da lupa
-imagem_lupa.set_alpha(0)  # 0 é totalmente transparente inicialmente
+# Posições para as lupas usando um dicionário
+posicoes_lupas = {
+    "gaveta": (409, 479), 
+    "porta": (546, 373), 
+    "papel": (316, 740), 
+    "estante": (923, 405)}
 
-# Posição inicial da imagem móvel
-posicao_x, posicao_y = 350, 250
+tempos_mensagens = {}
 
-# Variável de controle
-movendo = False  # Indica se a imagem está sendo arrastada
+#Mensagens associadas
+mensagens = {
+    "gaveta": "A gaveta está trancada. Precisa de um código para abrir", 
+    "porta": "É preciso resolver o quebra-cabeça para abrir a porta", 
+    "papel": "Tem algo no papel 2μC e 3μC, 0.5m", 
+    "estante": "Alguns livros com relação a eletriciadade e magnetismo,talvez tenha algo útil. Forças com sinais opostos se atraem e forças com sinais iguais se repelem"
+}
 
-# Posição da lupa
-lupa_x, lupa_y = 230, 481
 
-# Tamanho da imagem da lupa
-lupa_width, lupa_height = imagem_lupa.get_width(), imagem_lupa.get_height()
-
-# Raio de interação da lupa (metade da largura da lupa)
-raio_interacao = max(lupa_width, lupa_height)  # Usamos o maior valor como raio para um "círculo de interação"
+#Variaveis do jogo
+lupa_x, lupa_y = 0, 0
+mensagem_ativa =""
+resposta_correta = "0.216"
+resposta_usuario = ""
+gaveta_aberta = False #Estado inicial da gaveta
+mensagem_correta = False #Indica se a mensagem da gaveta aberta esta aberta ou não
 
 # Função para calcular a distância entre o cursor e o centro da lupa
 def distancia_entre_pontos(p1, p2):
     return math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
 
 # Função para verificar se o mouse está dentro do raio de interação
-def esta_no_raio_interacao(mouse_x, mouse_y, lupa_x, lupa_y, raio):
-    distancia = distancia_entre_pontos((mouse_x, mouse_y), (lupa_x + lupa_width // 2, lupa_y + lupa_height // 2))
+def esta_no_raio_interacao(mouse_x, mouse_y,alvo_x, alvo_y, raio = 50):
+    distancia = distancia_entre_pontos((mouse_x, mouse_y), (alvo_x, alvo_y))
     return distancia < raio
 
+# Função para verificar se o clique foi fora de uma área interativa
+def clicou_fora_da_area_interativa(mouse_x, mouse_y):
+    # Aqui você pode definir o tamanho da área interativa onde o clique deve ser considerado "fora"
+    return not any(esta_no_raio_interacao(mouse_x, mouse_y, x, y) for x, y in posicoes_lupas.values())
+
 # Variáveis para a janela de pergunta
-pergunta_ativa = False
-pergunta = "Determine a força elétrica entre duas cargas de q1=2μC q2=-3μC, separadas por uma distância de d=0.5m"
-resposta_correta = "0.216"
-resposta_usuario = ""
+#pergunta_ativa = False
+#pergunta = "Determine a força elétrica entre duas cargas de q1=2μC q2=-3μC, separadas por uma distância de d=0.5m"
+#resposta_correta = "0.216"
+#resposta_usuario = ""
 contador = 0
 mensagem_correta = False  # Indica se a mensagem "Resposta correta!" deve ser exibida
 tempo_mensagem = 0        # Temporizador para exibir a mensagem (em milissegundos)
@@ -71,32 +82,46 @@ while rodando:
         if evento.type == pygame.MOUSEBUTTONDOWN:
             print(f'Clique do mouse: {evento.pos}')
             mouse_x, mouse_y = evento.pos  # Pega a posição do clique
-            # Verifica se o clique foi dentro da imagem da lupa
-            if esta_no_raio_interacao(mouse_x, mouse_y, lupa_x, lupa_y, raio_interacao):
-                pergunta_ativa = True  # Exibe a pergunta
-                resposta_usuario = ""  # Limpa a resposta
+            if clicou_fora_da_area_interativa(mouse_x, mouse_y):
+                mensagem_ativa = ""
+            else:
+                # Verifica se o clique foi dentro da imagem da lupa
+                for  local, (alvo_x, alvo_y) in posicoes_lupas.items():
+                    if esta_no_raio_interacao(mouse_x, mouse_y, alvo_x, alvo_y):
+                        #pergunta_ativa = True  # Exibe a pergunta
+                        #resposta_usuario = ""  # Limpa a resposta
+                        if local in mensagens:
+                            mensagem_ativa = mensagens[local]
+                            tempos_mensagens[mensagem_ativa] = pygame.time.get_ticks()  # REGISTRA O TEMPO DA MENSAGEM
+                            
 
-        # Detectar quando o botão do mouse é solto
-        if evento.type == pygame.MOUSEBUTTONUP:
-            movendo = False
+                        if local == "gaveta" and not gaveta_aberta:
+                            mensagem_ativa = mensagens["gaveta"]
+                        elif local == "porta":
+                            mensagem_ativa = mensagens["porta"]
+                        elif local == "papel":
+                            mensagem_ativa = mensagens["papel"]
+                        elif local == "estante":
+                            mensagem_ativa = mensagens["estante"]
+        #else:
 
-        # Detectar movimento do mouse
-        if evento.type == pygame.MOUSEMOTION:
-            if movendo:
-                mouse_x, mouse_y = evento.pos
-                # Atualizar posição da imagem móvel com base no movimento do mouse
-                posicao_x = mouse_x - offset_x
-                posicao_y = mouse_y - offset_y
+            #if not esta_no_raio_interacao(mouse_x,mouse_y, LARGURA  // 2, ALTURA// 2):
+                #mensagem_ativa ="";   
 
         # Detectar tecla pressionada para digitar a resposta
-        if evento.type == pygame.KEYDOWN and pergunta_ativa:
+        if evento.type == pygame.KEYDOWN and  mensagem_ativa == mensagens["gaveta"] and not gaveta_aberta:
             if evento.key == pygame.K_RETURN:  # Quando pressionar Enter
-                if resposta_usuario.lower() == resposta_correta.lower():  # Verifica se a resposta está correta
+                if resposta_usuario == resposta_correta:  # Verifica se a resposta está correta
                     contador += 1  # Incrementa o contador
-                    mensagem_correta = True  # Ativa a exibição da mensagem
+                    gaveta_aberta = True; #Gaveta é aberta
+                    mensagem_correta = True  # Ativa a exibição de resposta certa 
                     tempo_mensagem = pygame.time.get_ticks()  # Armazena o tempo atual
                     print("Resposta correta!")
-                pergunta_ativa = False  # Fecha a janela de pergunta
+                    mensagem_ativa = ""
+                    resposta_usuario = ""
+                #pergunta_ativa = False  # Fecha a janela de pergunta
+                else:
+                    mensagem_ativa = "Código incorreto!Você é burro"
             elif evento.key == pygame.K_BACKSPACE:
                 resposta_usuario = resposta_usuario[:-1]  # Apaga um caractere
             else:
@@ -106,46 +131,111 @@ while rodando:
     mouse_x, mouse_y = pygame.mouse.get_pos()
 
     # Verificar se o mouse está dentro do raio de interação da lupa
-    if esta_no_raio_interacao(mouse_x, mouse_y, lupa_x, lupa_y, raio_interacao):
-        imagem_lupa.set_alpha(255)  # Tornar a lupa mais visível
-    else:
-        imagem_lupa.set_alpha(0)  # Manter opacidade baixa
+    for alvo_x, alvo_y in posicoes_lupas.values():
+        if esta_no_raio_interacao(mouse_x, mouse_y, alvo_x, alvo_y):
+            lupa_Iteracao.set_alpha(255)  # Tornar a lupa mais visível
+            lupa_x,lupa_y = alvo_x, alvo_y
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            break
+
+        else:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+            lupa_Iteracao.set_alpha(0)  # Manter opacidade baixa
+
+    
+    # Verificar se o mouse está dentro do raio de interação da lupa
+    #if esta_no_raio_interacao(mouse_x, mouse_y, posicoes_lupas.values()):
+     #   TELA.blit(lupa_Iteracao, (mouse_x, mouse_y))  # Desenhar a lupa na posição do mouse))
+      #  lupa_Iteracao.set_alpha(255)  # Tornar a lupa mais visível
+    #else:
+     #   lupa_Iteracao.set_alpha(0)  # Manter opacidade baixa
 
     # Desenhar o fundo (estático)
     TELA.blit(fundo, (0, 0))
 
-    # Desenhar a imagem da lupa
-    TELA.blit(imagem_lupa, (lupa_x, lupa_y))
+    # Desenhar a lupa visìvel
+    TELA.blit(lupa_Iteracao, (lupa_x, lupa_y))
 
-    # Desenhar a imagem móvel
-    TELA.blit(imagem, (posicao_x, posicao_y))
 
     # Se a janela de pergunta estiver ativa, desenhar a caixa de pergunta
-    if pergunta_ativa:
+    if mensagem_ativa:
         font = pygame.font.Font(None, 36)
-        texto_pergunta = font.render(pergunta, True, (255, 255, 255))
-        TELA.blit(texto_pergunta, (LARGURA // 4, ALTURA // 4))  # Exibe a pergunta
+        palavras = mensagem_ativa.split(' ')
+        linhas = []
+        linha_atual = ""
+        for palavra in palavras:
+            if font.size(linha_atual + palavra)[0] < LARGURA - 40:
+                linha_atual += palavra + " "
+            else:
+                linhas.append(linha_atual)
+                linha_atual = palavra + " "
+        linhas.append(linha_atual)
 
-        texto_resposta = font.render(resposta_usuario, True, (255, 255, 255))
-        TELA.blit(texto_resposta, (LARGURA // 4, ALTURA // 2))  # Exibe a resposta digitada
+        # Desenhar o fundo do menu
+        menu_largura, menu_altura = LARGURA - 40, len(linhas) * font.get_linesize() + 20
+        menu_x, menu_y = 20, ALTURA - menu_altura - 100
+        pygame.draw.rect(TELA, (0, 0, 0, 100), (menu_x, menu_y, menu_largura, menu_altura))
+        pygame.draw.rect(TELA, (255, 255, 255), (menu_x, menu_y, menu_largura, menu_altura), 2)
+
+        y_offset = menu_y + 10
+        for linha in linhas:
+            texto_mensagem = font.render(linha, True, (255, 255, 255))
+            TELA.blit(texto_mensagem, (menu_x + 10, y_offset))
+            y_offset += font.get_linesize()
+
+        #Exibe se for a gaveta
+        if mensagem_ativa == mensagens["gaveta"] and not gaveta_aberta:
+            texto_resposta = font.render(resposta_usuario, True, (255, 255, 255))
+            TELA.blit(texto_resposta, (LARGURA // 4, ALTURA // 1.8))  # Exibe a resposta digitada
+            if mensagem_ativa == mensagens["gaveta"] and not gaveta_aberta:
+                resposta_largura, resposta_altura = LARGURA - 40, 50
+                resposta_x, resposta_y = 20, ALTURA - resposta_altura - 30
+                pygame.draw.rect(TELA, (0, 0, 0), (resposta_x, resposta_y, resposta_largura, resposta_altura))
+                pygame.draw.rect(TELA, (255, 255, 255), (resposta_x, resposta_y, resposta_largura, resposta_altura), 2)
+
+                # Exibir a resposta digitada
+                texto_resposta = font.render(resposta_usuario, True, (255, 255, 255))
+                TELA.blit(texto_resposta, (resposta_x + 10, resposta_y + 10))
+
+                # Exibir a instrução para pressionar Enter
+                texto_instrucoes = font.render("Pressione Enter para responder", True, (255, 255, 255))
+                TELA.blit(texto_instrucoes, (resposta_x + 10, resposta_y + 50))
+                # Desenhar o fundo do menu de resposta
+
+        if mensagem_ativa in tempos_mensagens:
+            # Verifica se a mensagem ativa NÃO é a da gaveta
+            if mensagem_ativa != mensagens["gaveta"]:
+                if pygame.time.get_ticks() - tempos_mensagens[mensagem_ativa] > DURACAO_MENSAGEM:
+                    if mensagem_ativa in tempos_mensagens:  # Verifica se a mensagem ainda existe no dicionário
+                        del tempos_mensagens[mensagem_ativa]  # Remove o tempo da mensagem
+                    mensagem_ativa = ""  # Para de exibir a mensagem
 
         # Exibe a instrução para pressionar Enter
-        texto_instrucoes = font.render("Pressione Enter para responder", True, (255, 255, 255))
-        TELA.blit(texto_instrucoes, (LARGURA // 4, ALTURA // 1.5))
+        #texto_instrucoes = font.render("Pressione Enter para responder", True, (255, 255, 255))
+        #TELA.blit(texto_instrucoes, (LARGURA // 4, ALTURA // 1.5))
+    
+    #Exibir a mensagem da gaveta aberta
+    if mensagem_correta:
+        font = pygame.font.Font(None, 36)
+        texto_sucesso = font.render("Gaveta aberta!Boa animal", True, (0, 255, 0))
+        TELA.blit(texto_sucesso, (LARGURA // 4, ALTURA // 1.5))
 
+        if pygame.time.get_ticks() - tempo_mensagem > DURACAO_MENSAGEM:
+            mensagem_correta = False  # Para de exibir a mensagem
+    
     # Exibir o contador
     font = pygame.font.Font(None, 36)
     texto_contador = font.render(f"Contador: {contador}", True, (255, 255, 255))
     TELA.blit(texto_contador, (10, 10))
 
-    if mensagem_correta:
-        font = pygame.font.Font(None, 36)
-        texto_mensagem = font.render("Resposta correta!", True, (0, 255, 0))  # Texto em verde
-        TELA.blit(texto_mensagem, (10, 50))  # Desenha abaixo do contador
+    #if mensagem_correta:
+     #   font = pygame.font.Font(None, 36)
+      #  texto_mensagem = font.render("Resposta correta!", True, (0, 255, 0))  # Texto em verde
+       # TELA.blit(texto_mensagem, (10, 50))  # Desenha abaixo do contador
 
         # Verifica se o tempo de exibição já passou
-        if pygame.time.get_ticks() - tempo_mensagem > DURACAO_MENSAGEM:
-            mensagem_correta = False  # Para de exibir a mensagem
+        #if pygame.time.get_ticks() - tempo_mensagem > DURACAO_MENSAGEM:
+         #   mensagem_correta = False  # Para de exibir a mensagem
 
     # Atualizar a tela
     pygame.display.flip()
