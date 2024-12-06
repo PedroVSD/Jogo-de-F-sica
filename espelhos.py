@@ -1,146 +1,140 @@
 import pygame
-import math
+import sys
+
+# Inicialização do Pygame
+pygame.init()
 
 # Configurações da tela
 LARGURA, ALTURA = 800, 600
-pygame.init()
-tela = pygame.display.set_mode((LARGURA, ALTURA))
-clock = pygame.time.Clock()
+TELA = pygame.display.set_mode((LARGURA, ALTURA))
+pygame.display.set_caption("Minigame de Resistores")
 
 # Cores
 BRANCO = (255, 255, 255)
 PRETO = (0, 0, 0)
-VERMELHO = (255, 0, 0)
-AZUL = (0, 0, 255)
+AZUL = (0, 102, 204)
+VERMELHO = (204, 0, 0)
+VERDE = (0, 204, 0)
 
-# Classe para representar espelhos
-class Espelho:
-    def __init__(self, x, y, angulo=0):
-        self.x = x
-        self.y = y
-        self.angulo = angulo  # Ângulo do espelho em graus
+# Fonte
+fonte = pygame.font.Font(None, 36)
 
-    def girar(self, delta):
-        self.angulo += delta
-        self.angulo %= 360
+# Funções auxiliares
+def calcular_corrente(resistores, configuracao):
+    if len(resistores) != 4:
+        return None  # O jogador deve escolher exatamente 4 resistores
 
-    def desenhar(self, tela):
-        comprimento = 100  # Comprimento do espelho
-        angulo_rad = math.radians(self.angulo)
-        x2 = self.x + comprimento * math.cos(angulo_rad)
-        y2 = self.y - comprimento * math.sin(angulo_rad)
-        pygame.draw.line(tela, AZUL, (self.x, self.y), (x2, y2), 3)
+    # Calcula a resistência equivalente
+    if configuracao == "paralelo":
+        try:
+            r_eq = 1 / sum(1 / r for r in resistores)
+        except ZeroDivisionError:
+            return None
+    elif configuracao == "série":
+        r_eq = sum(resistores)
+    else:
+        return None
 
-    def calcular_reflexao(self, dx, dy):
-        # Calcula a normal do espelho (ângulo perpendicular à superfície)
-        angulo_espelho = math.radians(self.angulo)
-        normal_x = math.cos(angulo_espelho)
-        normal_y = -math.sin(angulo_espelho)
+    # Calcula a corrente
+    V = 12  # Tensão da bateria
+    corrente = V / r_eq
+    return round(corrente, 2)
 
-        # Produto escalar para projetar o vetor do raio na normal
-        dot = dx * normal_x + dy * normal_y
+def desenhar_texto(texto, x, y, cor=PRETO):
+    texto_renderizado = fonte.render(texto, True, cor)
+    TELA.blit(texto_renderizado, (x, y))
 
-        # Calcula o vetor refletido
-        refletido_x = dx - 2 * dot * normal_x
-        refletido_y = dy - 2 * dot * normal_y
+# Função para reiniciar o jogo
+def reiniciar_jogo():
+    global fase, resistores_escolhidos, configuracao, resultado
+    fase = 1
+    resistores_escolhidos = []
+    configuracao = None
+    resultado = ""
 
-        return refletido_x, refletido_y
+# Variáveis do jogo
+resistores_disponiveis = [2, 6, 8]
+resistores_escolhidos = []
+configuracao = None
+resultado = ""
+fase = 1
 
-    def intersecao_com_raio(self, raio_x, raio_y, dx, dy):
-        # Verifica onde o raio intersecta com o espelho
-        comprimento = 100  # Comprimento do espelho
-        angulo_rad = math.radians(self.angulo)
-        x2 = self.x + comprimento * math.cos(angulo_rad)
-        y2 = self.y - comprimento * math.sin(angulo_rad)
-        
-        # Cálculo para verificar a interseção do raio com o espelho
-        denom = (dy * (x2 - self.x) - dx * (y2 - self.y))
-        if denom == 0:
-            return False  # Raio paralelo ao espelho, sem interseção
-        
-        # Fórmulas de interseção
-        t = ((raio_x - self.x) * (y2 - self.y) - (raio_y - self.y) * (x2 - self.x)) / denom
-        u = ((raio_x - self.x) * dy - (raio_y - self.y) * dx) / denom
-        
-        if 0 <= t <= 1 and u >= 0:
-            return True  # Interseção dentro do espelho
-        return False
+# Loop principal do jogo
+rodando = True
+while rodando:
+    TELA.fill(BRANCO)
 
-# Configuração inicial
-fonte_luz = (400, 100)  # Posição inicial da fonte de luz
-alvo = (400, 500)  # Posição do alvo
-espelhos = [
-    Espelho(300, 300, 45),  # Primeiro espelho
-    Espelho(500, 400, -45)  # Segundo espelho
-]
+    for evento in pygame.event.get():
+        if evento.type == pygame.QUIT:
+            rodando = False
 
-# Função principal
-def main():
-    rodando = True
-    angulo_raio = -math.pi / 1.5  # Ângulo inicial do raio de luz (em radianos, para a direita)
+        # Lógica para reinício
+        if evento.type == pygame.KEYDOWN and evento.key == pygame.K_r:
+            reiniciar_jogo()
 
-    while rodando:
-        tela.fill(PRETO)  # Limpa a tela
+        # Lógica para a fase 1: Seleção de resistores
+        if fase == 1:
+            if evento.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = evento.pos
 
-        # Processa eventos do jogador
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:
-                rodando = False
-            elif evento.type == pygame.KEYDOWN:
-                if evento.key == pygame.K_LEFT:
-                    espelhos[0].girar(-5)  # Gira o primeiro espelho
-                elif evento.key == pygame.K_RIGHT:
-                    espelhos[0].girar(5)
-                elif evento.key == pygame.K_a:
-                    espelhos[1].girar(-5)  # Gira o segundo espelho
-                elif evento.key == pygame.K_d:
-                    espelhos[1].girar(5)
+                # Detecta clique nos botões de resistores
+                for i, r in enumerate(resistores_disponiveis):
+                    if 50 + i * 150 < mouse_x < 150 + i * 150 and 200 < mouse_y < 250:
+                        if len(resistores_escolhidos) < 4:
+                            resistores_escolhidos.append(r)
 
-        # Desenha os elementos na tela
-        pygame.draw.circle(tela, VERMELHO, fonte_luz, 5)  # Fonte de luz
-        pygame.draw.circle(tela, BRANCO, alvo, 10)  # Alvo
-        for espelho in espelhos:
-            espelho.desenhar(tela)
+        # Lógica para a fase 2: Escolha de configuração
+        elif fase == 2:
+            if evento.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = evento.pos
 
-        # Simulação do raio de luz
-        raio_x, raio_y = fonte_luz  # Ponto inicial do raio
-        dx = math.cos(angulo_raio) * 1000  # Direção horizontal do raio
-        dy = -math.sin(angulo_raio) * 1000  # Direção vertical do raio
-        raio_atingiu_alvo = False
+                # Detecta clique nos botões de configuração
+                if 200 < mouse_x < 300 and 200 < mouse_y < 250:
+                    configuracao = "série"
+                    fase = 3
+                elif 500 < mouse_x < 600 and 200 < mouse_y < 250:
+                    configuracao = "paralelo"
+                    fase = 3
 
-        while True:
-            atingiu_espelho = False
-            for espelho in espelhos:
-                if espelho.intersecao_com_raio(raio_x, raio_y, dx, dy):  # Se o raio atinge o espelho
-                    pygame.draw.line(tela, BRANCO, (raio_x, raio_y), (espelho.x, espelho.y), 2)
-                    dx, dy = espelho.calcular_reflexao(dx, dy)  # Calcula o novo vetor direção
-                    raio_x, raio_y = espelho.x, espelho.y  # Atualiza o ponto inicial do próximo raio
-                    atingiu_espelho = True
-                    break
-            
-            # Verifica se atingiu um espelho; caso contrário, desenha até o limite
-            if not atingiu_espelho:
-                fim_x = raio_x + dx
-                fim_y = raio_y + dy
-                pygame.draw.line(tela, BRANCO, (raio_x, raio_y), (fim_x, fim_y), 2)
-                break
+    # Fase 1: Seleção de resistores
+    if fase == 1:
+        desenhar_texto("Escolha 4 resistores:", 50, 50)
+        for i, r in enumerate(resistores_disponiveis):
+            pygame.draw.rect(TELA, AZUL, (50 + i * 150, 200, 100, 50))
+            desenhar_texto(f"{r} Ω", 70 + i * 150, 215, BRANCO)
 
-        # Verifica se o raio atingiu o alvo
-        if math.sqrt((raio_x - alvo[0]) ** 2 + (raio_y - alvo[1]) ** 2) < 10:
-            raio_atingiu_alvo = True
-            pygame.draw.line(tela, BRANCO, (raio_x, raio_y), alvo, 2)  # Último segmento até o alvo
+        desenhar_texto(f"Escolhidos: {resistores_escolhidos}", 50, 350)
 
-        # Exibe mensagem de vitória
-        if raio_atingiu_alvo:
-            fonte = pygame.font.Font(None, 36)
-            texto = fonte.render("Você venceu!", True, BRANCO)
-            tela.blit(texto, (LARGURA // 2 - 100, ALTURA // 2))
+        if len(resistores_escolhidos) == 4:
+            desenhar_texto("Pressione Enter para avançar!", 50, 400, VERDE)
+            if evento.type == pygame.KEYDOWN and evento.key == pygame.K_RETURN:
+                fase = 2
 
-        pygame.display.flip()
-        clock.tick(60)
+    # Fase 2: Escolha da configuração
+    elif fase == 2:
+        desenhar_texto("Escolha a configuração dos resistores:", 50, 50)
 
-    pygame.quit()
+        # Botões para configuração
+        pygame.draw.rect(TELA, AZUL, (200, 200, 100, 50))
+        desenhar_texto("Série", 220, 215, BRANCO)
+        pygame.draw.rect(TELA, AZUL, (500, 200, 100, 50))
+        desenhar_texto("Paralelo", 520, 215, BRANCO)
 
+    # Fase 3: Resultado
+    elif fase == 3:
+        corrente = calcular_corrente(resistores_escolhidos, configuracao)
+        if corrente is None:
+            resultado = "Configuração inválida!"
+        elif corrente == 8:
+            resultado = "Parabéns! A corrente é 8A. A porta foi destrancada!"
+        else:
+            resultado = f"Corrente calculada: {corrente}A. Tente novamente!"
 
-if __name__ == "__main__":
-    main()
+        desenhar_texto(resultado, 50, 50)
+        desenhar_texto("Pressione R para reiniciar.", 50, 100)
+
+    pygame.display.flip()
+
+# Finalização do Pygame
+pygame.quit()
+sys.exit()

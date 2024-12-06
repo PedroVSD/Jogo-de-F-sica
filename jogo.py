@@ -25,9 +25,12 @@ tempos_mensagens = {}
 
 #Mensagens associadas
 
-
+#Carrega a musica
+pygame.mixer.music.load("D:\Cursos\Projetos\Jogo-de-F-sica\Musica\Musica_jogo.mp3")
+pygame.mixer.music.play(-1)  # Toca a música em loop infinito
 
 #Variaveis do jogo
+cursor_ativo = False
 lupa_x, lupa_y = 0, 0
 posicoes_lupas = {}
 mensagens = {}
@@ -68,7 +71,7 @@ def processar_interecao(mouse_x, mouse_y, modo = "distancia", alvo_x = None, alv
         raise ValueError
 
 # Função para mostrar mensagem na tela
-def mostrar_mensagem(mensagem):
+def mostrar_mensagem(mensagem, menu_largura=None, menu_altura=None ,menu_x=None, menu_y=None, cor_borda=(255, 255, 255), cor_fundo=(0, 0, 0), cor_texto=(255, 255, 255)):
     font = pygame.font.Font(None, 30)
     palavras = mensagem.split(' ')
     linhas = []
@@ -80,14 +83,15 @@ def mostrar_mensagem(mensagem):
             linhas.append(linha_atual)
             linha_atual = palavra + " "
     linhas.append(linha_atual)
-    
-    menu_largura, menu_altura = LARGURA - 40, len(linhas) * font.get_linesize() + 20
-    menu_x, menu_y = 20, ALTURA - menu_altura - 100
-    pygame.draw.rect(TELA, (0, 0, 0, 100), (menu_x, menu_y, menu_largura, menu_altura))
-    pygame.draw.rect(TELA, (255, 255, 255), (menu_x, menu_y, menu_largura, menu_altura), 2)
+    if menu_largura is None or menu_altura is None:
+        menu_largura, menu_altura = LARGURA - 40, len(linhas) * font.get_linesize() + 20
+    if menu_x is None or menu_y is None:
+        menu_x, menu_y = 20, ALTURA - menu_altura - 100
+    pygame.draw.rect(TELA, cor_fundo, (menu_x, menu_y, menu_largura, menu_altura))
+    pygame.draw.rect(TELA, cor_borda, (menu_x, menu_y, menu_largura, menu_altura), 2)
     y_offset = menu_y + 10
     for linha in linhas:
-        texto_mensagem = font.render(linha, True, (255, 255, 255))
+        texto_mensagem = font.render(linha, True, cor_texto)
         TELA.blit(texto_mensagem, (menu_x + 10, y_offset))
         y_offset += font.get_linesize()
 
@@ -111,22 +115,136 @@ def mostrar_pergunta():
     TELA.blit(texto_instrucoes, (resposta_x + 10, resposta_y + 50))
     # Desenhar o fundo do menu de resposta
 
+# Função exclusiva do circuito
+def resolver_Circuito():
+    # Configuração inicial do minigame
+    resistores_disponiveis = [2, 6, 8]
+    resistores_escolhidos = []
+    configuracao = None
+    resultado = ""
+    fase = 1
+    sucesso = False
+    # Salvar a tela atual em uma variável
+    tela_atual = TELA.copy()
+    # Loop principal do minigame
+    while True:
+
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            # Pressione R para sair
+            if evento.type == pygame.KEYDOWN and evento.key == pygame.K_r:
+                return False
+
+            # Lógica para fase 1: Seleção de resistores
+            if fase == 1:
+                if evento.type == pygame.MOUSEBUTTONDOWN:
+                    btts_resistores = [(140, 225), (288, 226), (445, 224)]
+                    mouse_x, mouse_y = evento.pos
+                    # botões dos resistores (140, 225) (288, 226) (445, 224)
+                    for x, y in btts_resistores:
+                        if processar_interecao(mouse_x, mouse_y, alvo_x=x, alvo_y=y, modo="raio", raio=15):
+                            if len(resistores_escolhidos) < 4:
+                                r = resistores_disponiveis[btts_resistores.index((x, y))]
+                                resistores_escolhidos.append(r)
+
+            # Avançar para a próxima fase
+            if len(resistores_escolhidos) == 4 and fase == 1:
+                if evento.type == pygame.KEYDOWN and evento.key == pygame.K_RETURN:
+                    fase = 2
+
+            # Escolher configuração
+            elif fase == 2:
+                if evento.type == pygame.MOUSEBUTTONDOWN:
+                    print("Clique do mouse:", evento.pos)
+                    btts_configuracao = [(246, 223), (415, 224)]
+                    mouse_x, mouse_y = evento.pos
+                    if processar_interecao(mouse_x, mouse_y, alvo_x=246, alvo_y=223, modo="raio", raio=15):
+                        configuracao = "série"
+                        fase = 3
+                    elif processar_interecao(mouse_x, mouse_y, alvo_x=415, alvo_y=224, modo="raio", raio=15):
+                        configuracao = "paralelo"
+                        fase = 3
+
+        # Fase 1: Seleção de resistores
+        if fase == 1:
+            TELA.fill((255, 255, 255))  # Preenche a tela com a cor branca
+            TELA.blit(tela_atual, (0, 0))  # Restaura a tela anterior
+            mostrar_mensagem("Escolha 4 resistores:", menu_largura=250, menu_altura=50, menu_x=(LARGURA - 250) // 2, menu_y=50)
+            for i, r in enumerate(resistores_disponiveis):
+                mostrar_mensagem(f"{r} Ω", menu_largura=100, menu_altura=50, menu_x=(LARGURA - (len(resistores_disponiveis) * 150)) // 2 + i * 150, menu_y=200, cor_borda=(0, 0, 255), cor_fundo=(0, 0, 255), cor_texto=(255, 255, 255))
+            mostrar_mensagem(f"Escolhidos: {resistores_escolhidos}", menu_largura=300, menu_altura=50, menu_x=(LARGURA - 300) // 2, menu_y=350, cor_borda=(0, 0, 0), cor_fundo=(255, 255, 255), cor_texto=(0, 0, 0))
+            mostrar_mensagem("Pressione Enter para continuar", menu_largura=400, menu_altura=50, menu_x=(LARGURA - 300) // 2, menu_y=400, cor_borda=(0, 0, 0), cor_fundo=(255, 255, 255), cor_texto=(0, 0, 0))
+        # Fase 2: Escolha de configuração
+        elif fase == 2:
+            TELA.fill((255, 255, 255))  # Preenche a tela com a cor branca
+            TELA.blit(tela_atual, (0, 0))  # Restaura a tela anterior
+            mostrar_mensagem("Escolha a configuração dos resistores:", menu_largura=400, menu_altura=50, menu_x=(LARGURA - 400) // 2, menu_y=50)
+            mostrar_mensagem("Série", menu_largura=100, menu_altura=50, menu_x=200, menu_y=200, cor_borda=(0, 0, 255), cor_fundo=(0, 0, 255), cor_texto=(255, 255, 255))
+            mostrar_mensagem("Paralelo", menu_largura=100, menu_altura=50, menu_x=(LARGURA // 2) + 50, menu_y=200, cor_borda=(0, 0, 255), cor_fundo=(0, 0, 255), cor_texto=(255, 255, 255))
+
+        # Fase 3: Resultado
+        elif fase == 3:
+            TELA.fill((255, 255, 255))  # Preenche a tela com a cor branca
+            TELA.blit(tela_atual, (0, 0))  # Restaura a tela anterior
+            if configuracao == "série":
+                resistencia_total = sum(resistores_escolhidos)
+            elif configuracao == "paralelo":
+                resistencia_total = 1 / sum(1 / r for r in resistores_escolhidos)
+            else:
+                raise ValueError("Configuração inválida")
+
+            corrente = 12 / resistencia_total  # Considerando uma tensão de 12V
+            if corrente == 8:
+                sucesso = True
+                resultado = "Parabéns! A corrente é 8A. A porta foi destrancada!"
+            else:
+                resultado = f"Corrente: {corrente}A. Tente novamente."
+            mostrar_mensagem(resultado, menu_largura=500, menu_altura=100, menu_x=(LARGURA - 500) // 2, menu_y=(ALTURA - 100) // 2 - 50, cor_borda=(0, 0, 0), cor_fundo=(255, 255, 255), cor_texto=(0, 0, 0))
+            mostrar_mensagem("Pressione R para sair.", menu_largura=500, menu_altura=50, menu_x=(LARGURA - 500) // 2, menu_y=(ALTURA - 50) // 2 + 50, cor_borda=(0, 0, 0), cor_fundo=(255, 255, 255), cor_texto=(0, 0, 0))
+
+            pygame.display.flip()
+            pygame.time.delay(3000)
+            return sucesso
+
+        pygame.display.flip()
+
 #Menu do jogo
 def menu_principal():
+    #Carregar a imagem de fundo
+    fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Menu.png")  # Substitua por sua imagem de fundo
+    fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
+    TELA.blit(fundo, (0, 0)) # Desenha a imagem de fundo na tela
+
+    global cursor_ativo
+
     rodando = True
     while rodando:
-        TELA.fill((0, 0, 0))  # Preencher a tela com preto
-
         font = pygame.font.Font(None, 74)
         titulo = font.render("Escape Room de Física", True, (255, 255, 255))
         TELA.blit(titulo, (LARGURA // 2 - titulo.get_width() // 2, ALTURA // 4))
 
         font = pygame.font.Font(None, 56)
         botao_jogar = font.render("Jogar", True, (255, 255, 255))
-        botao_sair = font.render("Sair", True, (255, 255, 255))
+        botao_sair = font.render("Sair", True, (255, 255, 255, 0))
 
-        botao_jogar_rect = botao_jogar.get_rect(center=(LARGURA // 2, ALTURA // 2))
-        botao_sair_rect = botao_sair.get_rect(center=(LARGURA // 2, ALTURA // 2 + 100))
+        botao_jogar_rect = botao_jogar.get_rect(center=(LARGURA // 2, (ALTURA // 2) -50))
+        botao_sair_rect = botao_sair.get_rect(center=(LARGURA // 2, (ALTURA // 2) + 10))
+
+
+        # Verificar se o mouse está dentro do raio de interação da lupa
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        if processar_interecao(mouse_x, mouse_y, alvo_x=LARGURA // 2, alvo_y=(ALTURA // 2) -50, modo="raio"):
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+        else:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
+        if processar_interecao(mouse_x, mouse_y, alvo_x=LARGURA // 2, alvo_y=(ALTURA // 2) + 10, modo="raio"):
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+        else:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
         TELA.blit(botao_jogar, botao_jogar_rect)
         TELA.blit(botao_sair, botao_sair_rect)
@@ -145,7 +263,7 @@ def menu_principal():
         pygame.display.flip()
 
 
-#Fase 1
+#Fase 1 QUARTO
 def fase_1():
     # Carregar a imagem de fundo
     fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Fisica_Quarto.png")  # Substitua por sua imagem de fundo
@@ -174,7 +292,7 @@ def fase_1():
     mensagens = {
     "gaveta": "A gaveta está trancada. Precisa de um código para abrir", 
     "porta": "É preciso resolver o quebra-cabeça para abrir a porta", 
-    "papel": "Tem algo no papel 2μC e 3μC, 0.5m", 
+    "papel": "Tem algumas anotações no papel: 2μC e 3μC, 0.5m", 
     "estante": "Alguns livros com relação a eletriciadade e magnetismo,talvez tenha algo útil. Forças com sinais opostos se atraem e forças com sinais iguais se repelem"
     }
 
@@ -261,6 +379,12 @@ def fase_1():
         if mensagem_ativa:
             TELA.blit(fundo, (0, 0))  # Desenha a imagem de fundo na tela
             mostrar_mensagem(mensagem_ativa)
+            if mensagem_ativa == mensagens["porta"] and porta_aberta:
+                pygame.display.flip()
+                sleep(4)
+                fase_3()
+                pygame.quit()
+
             TELA.blit(lupa_Iteracao, (lupa_x, lupa_y))  # Desenha a lupa visível
 
             # Exibe se for a gaveta
@@ -283,6 +407,7 @@ def fase_1():
             pygame.display.flip()
             sleep(4)
             fase_2()
+            porta_aberta = True
             mensagens["porta"] = "Agora a porta está aberta"
 
 
@@ -298,7 +423,7 @@ def fase_1():
         # Atualizar a tela
         pygame.display.flip()
 
-#Fase 2
+#Fase 2 GAVETA
 def fase_2():
     # Carregar a imagem de fundo
     #fundo = pygame.image.load("Imagens\Gaveta.png")  # Substitua por sua imagem de fundo
@@ -325,7 +450,7 @@ def fase_2():
                  "fio": "Isso parece ser um circuito improvisado capaz de gerar um campo magnetico",
                  "bateria" : "Qual o campo magnetico?:"}
 
-    # Loop Principal da Fase 2
+   # Loop Principal da Fase 2
 
     rodando = True
     while rodando:
@@ -364,13 +489,11 @@ def fase_2():
             if evento.type == pygame.KEYDOWN and  mensagem_ativa == mensagens["bateria"] and not gaveta_aberta:
                 if evento.key == pygame.K_RETURN or evento.key == pygame.K_KP_ENTER:  # Quando pressionar Enter ou Enter do teclado numérico
                     if resposta_usuario == "0.00001":  # Verifica se a resposta está correta
-                        global porta_aberta
                         contador += 1  # Incrementa o contador
                         gaveta_aberta = True; #Gaveta é aberta
                         mensagem_correta = True  # Ativa a exibição de resposta certa 
                         tempo_mensagem = pygame.time.get_ticks()  # Armazena o tempo atual
                         print("Resposta correta!")
-                        porta_aberta = True
                         mensagens["bateria"] = "Já foi resolvido"
                         mensagem_ativa = ""
                         resposta_usuario = ""
@@ -407,6 +530,9 @@ def fase_2():
             mostrar_mensagem(mensagem_ativa)
             TELA.blit(lupa_Iteracao, (lupa_x, lupa_y))  # Desenha a lupa visível
 
+            # Exibe se for a gaveta
+            if mensagem_ativa == mensagens["bateria"]:
+                mostrar_pergunta()
 
             if mensagem_ativa in tempos_mensagens:
                 # Verifica se a mensagem ativa NÃO é a da gaveta
@@ -419,7 +545,7 @@ def fase_2():
                         
         #Exibir a mensagem da gaveta aberta
         if mensagem_correta:
-            mostrar_mensagem("O circuito esta emanando um campo magnetico que abre a porta do quarto")
+            mostrar_mensagem("O circuito esta emitindo um campo magnetico que abre a porta do quarto")
             pygame.display.flip()
             sleep(4)
             rodando = False
@@ -436,7 +562,7 @@ def fase_2():
         # Atualizar a tela
         pygame.display.flip()  
 
-#Fase 3
+#Fase 3 SALA
 def fase_3():
     # Carregar a imagem de fundo
     #fundo = pygame.image.load("Imagens\Gaveta.png")  # Substitua por sua imagem de fundo
@@ -454,16 +580,19 @@ def fase_3():
     global lupa_Iteracao
     porta_aberta = False #Estado inicial da gaveta
     mensagem_correta = False  # Estado inicial da mensagem de resposta correta
+    maleta = False
     
     posicoes_lupas = {"porta": (322, 308),
                       "maleta": (499, 491),
                       "papel":(200, 485),
                       "mesa":(320, 368)}
     
-    mensagens = {"porta": "A porta está trancada. Precisa de um código para abrir",
-                "maleta": "A maleta possui uma grande quantidade de resistores",
-                "papel": "Algo para escrever",
-                "mesa": "Um circuito de resistores e uma bateria"}
+    mensagens = {"porta": "A porta está trancada,e parece estar ligada a um circuito sobre a mesa.",
+                "maleta": "A maleta possui uma grande quantidade de resistores, eles são de 4 , 6 e 8 Ohms",
+                "papel": "Uma anotação: maior que 7 e menor que 9",
+                "mesa": "Um circuito e uma bateria de 12V,mas parece que não temos todos os resistores"}
+
+
 
     rodando = True
     while rodando:
@@ -495,8 +624,9 @@ def fase_3():
                             elif local == "porta":
                                 mensagem_ativa = mensagens["porta"]
                             elif local == "mesa":
+                                maleta = True
                                 mensagem_ativa = mensagens["mesa"]
-                            elif local == "maleta":
+                            elif local == "maleta" and maleta:
                                 mensagem_ativa = mensagens["maleta"]
 
 
@@ -536,14 +666,8 @@ def fase_3():
         # Atualizar a tela
         pygame.display.flip()  
 
+#Fase 4 CIRCUITO
 def fase_4():
-    # Carregar a imagem de fundo
-    #fundo = pygame.image.load("Imagens\Gaveta.png")  # Substitua por sua imagem de fundo
-    fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Gaveta.png")  # Substitua por sua imagem de fundo
-    fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
-    TELA.blit(fundo, (0, 0)) # Desenha a imagem de fundo na tela
-
-def fase_5():
     # Carregar a imagem de fundo
     #fundo = pygame.image.load("Imagens\Gaveta.png")  # Substitua por sua imagem de fundo
     fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Circuito.png")  # Substitua por sua imagem de fundo
@@ -561,7 +685,6 @@ def fase_5():
     global DURACAO_MENSAGEM
     global resposta_usuario
     global lupa_Iteracao
-    circuito = False  # Estado inicial do circuito  
     
     mensagem_correta = False  # Estado inicial da mensagem de resposta correta
     porta_aberta = False  # Estado inicial da porta aberta
@@ -569,20 +692,14 @@ def fase_5():
 
     posicoes_lupas = {
     "circuito": (313, 296),  
-    "resistor_1": (246, 295), 
-    "resistor_2": (384, 273), 
     "bateria": (211, 140), 
     "nota": (433, 421)}
+
     mensagens = {
     "circuito": "O circuito está aberto. Precisa ser fechado para funcionar",
-    "resistor_1": "Um resistor de 1 ohm", 
-    "resistor_2": "Outro resistor de 1 ohm", 
-    "bateria": "Uma bateria com um DDP de 10V", 
-    "nota": "Devo ligar em parales ou em série?"
+    "bateria": "Uma bateria com um DDP de 12V", 
+    "nota": "Devo ligar em paralelo ou em série?"
     }
-
-
-    
 
      # Loop Principal da Fase 1
 
@@ -597,6 +714,7 @@ def fase_5():
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 print(f'Clique do mouse: {evento.pos}')
                 mouse_x, mouse_y = evento.pos  # Pega a posição do clique
+
                 if processar_interecao(mouse_x, mouse_y, modo="clique_fora", alvo_x=alvo_x, alvo_y=alvo_y, posicoes_lupas=posicoes_lupas):
                     print("Clique fora da lupa")
                     mensagem_ativa = ""
@@ -613,209 +731,14 @@ def fase_5():
                                 tempos_mensagens[mensagem_ativa] = pygame.time.get_ticks()  # REGISTRA O TEMPO DA MENSAGEM
                                 
 
-                            if local == "resistor_1":
-                                mensagem_ativa = mensagens["resistor_1"]
-                            elif local == "resistor_2":
-                                mensagem_ativa = mensagens["resistor_2"]
+                            if local == "nota" :
+                                mensagem_ativa = mensagens["nota"]
                             elif local == "bateria":
                                 mensagem_ativa = mensagens["bateria"]
-                            elif local == "nota":
-                                mensagem_ativa = mensagens["nota"]   
-
-            if evento.type == pygame.KEYDOWN and mensagem_ativa == mensagens["resistor_1"] and not circuito:
-                global resposta_usuario
-            if evento.type == pygame.KEYDOWN and  mensagem_ativa == mensagens["resistor_1"] and not circuito:
-                if evento.key == pygame.K_RETURN or evento.key == pygame.K_KP_ENTER:  # Quando pressionar Enter ou Enter do teclado numérico
-                    if resposta_usuario == "2":  # Verifica se a resposta está correta
-                        contador += 1  # Incrementa o contador
-                        circuito = True; #Gaveta é aberta
-                        mensagem_correta = True  # Ativa a exibição de resposta certa 
-                        tempo_mensagem = pygame.time.get_ticks()  # Armazena o tempo atual
-                        print("Resposta correta!")
-                        mensagens["resistor_1"] = "O Desafio foi resolvido"
-                        mensagem_ativa = ""
-                        resposta_usuario = ""
-                    #pergunta_ativa = False  # Fecha a janela de pergunta
-                    else:
-                        mensagem_ativa = "Código incorreto!Você é burro"
-                elif evento.key == pygame.K_BACKSPACE:
-                    resposta_usuario = resposta_usuario[:-1]  # Apaga um caractere
-                elif evento.unicode.isnumeric() or evento.unicode == ".":  # Apenas números e ponto
-                    resposta_usuario += evento.unicode  # Adiciona a letra pressionada
-
-            # Obter a posição do mouse
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-
-            # Verificar se o mouse está dentro do raio de interação da lupa
-            for alvo_x, alvo_y in posicoes_lupas.values():
-                if processar_interecao(mouse_x, mouse_y, alvo_x=alvo_x, alvo_y=alvo_y, modo="raio"):
-                    lupa_Iteracao.set_alpha(255)  # Tornar a lupa mais visível
-                    lupa_x,lupa_y = alvo_x, alvo_y
-                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-                    break
-                else:
-                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-                    TELA.blit(fundo, (0, 0))  # Desenha a imagem de fundo na tela
-                    lupa_Iteracao.set_alpha(0)  # Manter opacidade baixa
-        
-        # Desenhar a lupa visìvel
-        TELA.blit(lupa_Iteracao, (lupa_x, lupa_y))
-
-
-        # Se a janela de pergunta estiver ativa, desenhar a caixa de pergunta
-        if mensagem_ativa:
-            TELA.blit(fundo, (0, 0))  # Desenha a imagem de fundo na tela
-            mostrar_mensagem(mensagem_ativa)
-            TELA.blit(lupa_Iteracao, (lupa_x, lupa_y))  # Desenha a lupa visível
-
-            # Exibe se for a gaveta
-            if mensagem_ativa == mensagens["resistor_1"] and not circuito:
-                mostrar_pergunta()
-
-            if mensagem_ativa in tempos_mensagens:
-                # Verifica se a mensagem ativa NÃO é a da gaveta
-                if mensagem_ativa != mensagens["resistor_1"]:
-                    if pygame.time.get_ticks() - tempos_mensagens[mensagem_ativa] > DURACAO_MENSAGEM:
-                        if mensagem_ativa in tempos_mensagens:  # Verifica se a mensagem ainda existe no dicionário
-                            del tempos_mensagens[mensagem_ativa]  # Remove o tempo da mensagem
-                        mensagem_ativa = ""  # Para de exibir a mensagem
-                        TELA.blit(fundo, (0, 0))  # Desenha a imagem de fundo na tela
-                        
-        #Exibir a mensagem da gaveta aberta
-        if mensagem_correta:
-            mostrar_mensagem("Circuito resolvido!!")
-            mensagem_ativa = ""
-            pygame.display.flip()
-            sleep(4)
-            fase_2()
-            #mensagens["porta"] = "Agora a porta está aberta"
-
-
-            if pygame.time.get_ticks() - tempo_mensagem > DURACAO_MENSAGEM:
-                mensagem_correta = False  # Para de exibir a mensagem
-        
-        # Exibir o contador
-        font = pygame.font.Font(None, 36)
-        texto_contador = font.render(f"Contador: {contador}", True, (255, 255, 255))
-        TELA.blit(texto_contador, (10, 10))
-
-
-        # Atualizar a tela
-        pygame.display.flip()
-
-
-def fase_6():    
-    # Carregar a imagem de fundo
-    #fundo = pygame.image.load("Imagens\Gaveta.png")  # Substitua por sua imagem de fundo
-    fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Resistores.png")  # Substitua por sua imagem de fundo
-    fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
-    TELA.blit(fundo, (0, 0)) # Desenha a imagem de fundo na tela
-
-    # Variaveis
-    global contador
-    global posicoes_lupas
-    global mensagens
-    global mensagem_ativa
-    global lupa_x, lupa_y
-    global texto_contador
-    global DURACAO_MENSAGEM
-    global resposta_usuario
-    global lupa_Iteracao
-    circuito_fechado = False  # Estado inicial do circuito  
-    
-    mensagem_correta = False  # Estado inicial da mensagem de resposta correta
-    porta_aberta = False  # Estado inicial da porta aberta
-
-
-    posicoes_lupas = {
-    "circuito": (493, 228),  
-    "resistor_azul": (323, 594), 
-    "resistor_amarelo": (356, 411), 
-    "resistor_verde": (456, 370), 
-    "resistor_vermelho": (539, 468), 
-    "resistor_cinza": (212, 412), 
-    "resistor_laranja": (569, 496), 
-    "resistor_roxo": (333, 387), 
-    "resistor_marrom": (532, 454),}
-    mensagens = {
-    "circuito": "Preciso selecionar o resistor correto",
-    "resistor_azul": "Um resistor azul de ...", 
-    "resistor_amarelo": "Um resistor amarelo de ...", 
-    "resistor_verde": "Um resistor verde de ...", 
-    "resistor_vermelho": "Um resistor vermelho de ...",
-    "resistor_cinza": "Um resistor cinza de ...",
-    "resistor_laranja": "Um resistor laranja de ...",
-    "resistor_roxo": "Um resistor roxo de ...",
-    "resistor_marrom": "Um resistor marrom de ..."
-    }
-
-    rodando = True
-    while rodando:
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:
-                rodando = False
-
-            
-            # Detectar clique do mouse
-            if evento.type == pygame.MOUSEBUTTONDOWN:
-                print(f'Clique do mouse: {evento.pos}')
-                mouse_x, mouse_y = evento.pos  # Pega a posição do clique
-                if processar_interecao(mouse_x, mouse_y, modo="clique_fora", alvo_x=alvo_x, alvo_y=alvo_y, posicoes_lupas=posicoes_lupas):
-                    print("Clique fora da lupa")
-                    mensagem_ativa = ""
-                    lupa_Iteracao.set_alpha(0)  # Torna a lupa invisível
-                    TELA.blit(fundo, (0, 0))  # Desenha a imagem de fundo na tela
-                else:
-                    # Verifica se o clique foi dentro da imagem da lupa
-                    for  local, (alvo_x, alvo_y) in posicoes_lupas.items():
-                        if processar_interecao(mouse_x, mouse_y, alvo_x=alvo_x, alvo_y=alvo_y, modo="raio"):
-                            #pergunta_ativa = True  # Exibe a pergunta
-                            #resposta_usuario = ""  # Limpa a resposta
-                            if local in mensagens:
-                                mensagem_ativa = mensagens[local]
-                                tempos_mensagens[mensagem_ativa] = pygame.time.get_ticks()  # REGISTRA O TEMPO DA MENSAGEM
-                                
-
-                            if local == "circuito" and not circuito_fechado:
-                                print(circuito_fechado)
+                            elif local == "cirtuito":
                                 mensagem_ativa = mensagens["circuito"]
-                            elif local == "resistor_azul":
-                                mensagem_ativa = mensagens["resistor_azul"]
-                            elif local == "resistor_amarelo":
-                                mensagem_ativa = mensagens["resistor_amarelo"]
-                            elif local == "resistor_verde":
-                                mensagem_ativa = mensagens["resistor_verde"]
-                            elif local == "resistor_vermelho":
-                                mensagem_ativa = mensagens["resistor_vermelho"]
-                            elif local == "resistor_cinza":
-                                mensagem_ativa = mensagens["resistor_cinza"]
-                            elif local == "resistor_laranja":
-                                mensagem_ativa = mensagens["resistor_laranja"]
-                            elif local == "resistor_roxo":
-                                mensagem_ativa = mensagens["resistor_roxo"]
-                            elif local == "resistor_marrom":
-                                mensagem_ativa = mensagens["resistor_marrom"]
+                                resolver_Circuito()
 
-            if evento.type == pygame.KEYDOWN and mensagem_ativa == mensagens["circuito"] and not circuito_fechado:
-                global resposta_usuario
-            if evento.type == pygame.KEYDOWN and  mensagem_ativa == mensagens["circuito"] and not circuito_fechado:
-                if evento.key == pygame.K_RETURN or evento.key == pygame.K_KP_ENTER:  # Quando pressionar Enter ou Enter do teclado numérico
-                    if resposta_usuario == "0.216":  # Verifica se a resposta está correta
-                        contador += 1  # Incrementa o contador
-                        circuito_fechado = True; #Gaveta é aberta
-                        mensagem_correta = True  # Ativa a exibição de resposta certa 
-                        tempo_mensagem = pygame.time.get_ticks()  # Armazena o tempo atual
-                        print("Resposta correta!")
-                        mensagens["circuito"] = "O Desafio foi resolvido"
-                        mensagem_ativa = ""
-                        resposta_usuario = ""
-                    #pergunta_ativa = False  # Fecha a janela de pergunta
-                    else:
-                        mensagem_ativa = "Código incorreto!Você é burro"
-                elif evento.key == pygame.K_BACKSPACE:
-                    resposta_usuario = resposta_usuario[:-1]  # Apaga um caractere
-                elif evento.unicode.isnumeric() or evento.unicode == ".":  # Apenas números e ponto
-                    resposta_usuario += evento.unicode  # Adiciona a letra pressionada
 
             # Obter a posição do mouse
             mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -842,9 +765,10 @@ def fase_6():
             mostrar_mensagem(mensagem_ativa)
             TELA.blit(lupa_Iteracao, (lupa_x, lupa_y))  # Desenha a lupa visível
 
-            # Exibe se for a gaveta
-            if mensagem_ativa == mensagens["circuito"] and not circuito_fechado:
-                mostrar_pergunta()
+            # Exibe se for o circuito
+            if mensagem_ativa == mensagens["circuito"]:
+                resolver_Circuito()
+
 
             if mensagem_ativa in tempos_mensagens:
                 # Verifica se a mensagem ativa NÃO é a da gaveta
@@ -857,13 +781,11 @@ def fase_6():
                         
         #Exibir a mensagem da gaveta aberta
         if mensagem_correta:
-            mostrar_mensagem("Circuito Aberto!!")
+            mostrar_mensagem("Circuito resolvido!!")
             mensagem_ativa = ""
             pygame.display.flip()
             sleep(4)
-            fase_2()
-            mensagens["porta"] = "Agora a porta está aberta"
-
+            rodando = False
 
             if pygame.time.get_ticks() - tempo_mensagem > DURACAO_MENSAGEM:
                 mensagem_correta = False  # Para de exibir a mensagem
@@ -879,10 +801,12 @@ def fase_6():
 
 
 
-
-menu_principal()
-fase_3()
+#menu_principal()
+#fase_3()
+fase_4()
 
 # Finalizar o Pygame
 pygame.quit()
 sys.exit()
+
+
