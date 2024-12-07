@@ -17,10 +17,10 @@ pygame.display.set_caption("Escape Room de Física")  # Título da janela
 
 # Carregar a imagem da lupa
 if getattr(sys, 'frozen', False):
-    base_path = sys._MEIPASS
+    basepath = sys._MEIPASS
 else:
     basepath = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(base_path, 'Imagens\\lupa.png')
+file_path = os.path.join(basepath, 'Imagens\\lupa.png')
 lupa_Iteracao = pygame.image.load(file_path)  # Substitua por sua imagem
 #lupa_Iteracao = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\lupa.png")  # Substitua por sua imagem
 lupa_Iteracao = pygame.transform.scale(lupa_Iteracao, (25, 25))  # Redimensiona para 25x25 pixels
@@ -35,10 +35,10 @@ tempos_mensagens = {}
 
 #Carrega a musica
 if getattr(sys, 'frozen', False):
-    base_path = sys._MEIPASS
+    basepath = sys._MEIPASS
 else:
     basepath = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(base_path, 'Musica\\Musica_jogo.mp3')
+file_path = os.path.join(basepath, 'Musica\\Musica_jogo.mp3')
 pygame.mixer.music.load(file_path)
 #pygame.mixer.music.load("D:\Cursos\Projetos\Jogo-de-F-sica\Musica\Musica_jogo.mp3")
 pygame.mixer.music.play(-1)  # Toca a música em loop infinito
@@ -235,10 +235,10 @@ def menu_principal():
     #Carregar a imagem de fundo
     #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Menu.png")  # Substitua por sua imagem de fundo
     if getattr(sys, 'frozen', False):
-        base_path = sys._MEIPASS
+        basepath = sys._MEIPASS
     else:
         basepath = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_path, 'Imagens\\Menu.png')
+    file_path = os.path.join(basepath, 'Imagens\\Menu.png')
     
     fundo = pygame.image.load(file_path)  # Substitua por sua imagem de fundo
     fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
@@ -281,10 +281,10 @@ def fase_1():
 
     # Carregar a imagem de fundo
     if getattr(sys, 'frozen', False):
-        base_path = sys._MEIPASS
+        basepath = sys._MEIPASS
     else:
         basepath = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_path, 'Imagens\\Fisica_Quarto.png')
+    file_path = os.path.join(basepath, 'Imagens\\Fisica_Quarto.png')
 
     fundo = pygame.image.load(file_path)
     #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Fisica_Quarto.png")  # Substitua por sua imagem de fundo
@@ -444,10 +444,10 @@ def fase_1():
 def fase_2():
     # Carregar a imagem de fundo
     if getattr(sys, 'frozen', False):
-        base_path = sys._MEIPASS
+        basepath = sys._MEIPASS
     else:
         basepath = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_path, 'Imagens\\Gaveta.png')
+    file_path = os.path.join(basepath, 'Imagens\\Gaveta.png')
 
     fundo = pygame.image.load(file_path)  # Substitua por sua imagem de fundo
     #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Gaveta.png")  # Substitua por sua imagem de fundo
@@ -590,10 +590,10 @@ def fase_2():
 def fase_3():
 
     if getattr(sys, 'frozen', False):
-        base_path = sys._MEIPASS
+        basepath = sys._MEIPASS
     else:
         basepath = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_path, 'Imagens\\Sala3.png')
+    file_path = os.path.join(basepath, 'Imagens\\Sala3.png')
 
 
     # Carregar a imagem de fundo
@@ -716,10 +716,10 @@ def fase_3():
 def fase_4():
     # Carregar a imagem de fundo
     if getattr(sys, 'frozen', False):
-        base_path = sys._MEIPASS
+        basepath = sys._MEIPASS
     else:
         basepath = os.path.dirname(os.path.abspath(__file__))
-        file_path = os.path.join(base_path, 'Imagens\\Circuito.png')
+        file_path = os.path.join(basepath, 'Imagens\\Circuito.png')
 
     fundo = pygame.image.load(file_path)  # Substitua por sua imagem de fundo
     #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Circuito.png")  # Substitua por sua imagem de fundo
@@ -859,10 +859,10 @@ def tela_final():
     # Carregar a imagem de fundo
         # Carregar a imagem de fundo
     if getattr(sys, 'frozen', False):
-        base_path = sys._MEIPASS
+        basepath = sys._MEIPASS
     else:
         basepath = os.path.dirname(os.path.abspath(__file__))
-        file_path = os.path.join(base_path, 'Imagens\\Final.png')
+        file_path = os.path.join(basepath, 'Imagens\\Final.png')
 
     fundo = pygame.image.load(file_path)  # Substitua por sua imagem de fundo
     #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Final.png")  # Substitua por sua imagem de fundo
