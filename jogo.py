@@ -13,8 +13,8 @@ pygame.display.set_caption("Escape Room de Física")  # Título da janela
 
 
 # Carregar a imagem da lupa
-#lupa_Iteracao = pygame.image.load("Imagens\\lupa.png")  # Substitua por sua imagem
-lupa_Iteracao = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\lupa.png")  # Substitua por sua imagem
+lupa_Iteracao = pygame.image.load("Imagens\\lupa.png")  # Substitua por sua imagem
+#lupa_Iteracao = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\lupa.png")  # Substitua por sua imagem
 lupa_Iteracao = pygame.transform.scale(lupa_Iteracao, (25, 25))  # Redimensiona para 25x25 pixels
 lupa_Iteracao.set_alpha(0)  # 0 é totalmente transparente inicialmente
 
@@ -26,10 +26,12 @@ tempos_mensagens = {}
 #Mensagens associadas
 
 #Carrega a musica
-pygame.mixer.music.load("D:\Cursos\Projetos\Jogo-de-F-sica\Musica\Musica_jogo.mp3")
+pygame.mixer.music.load("Musica\\Musica_jogo.mp3")
+#pygame.mixer.music.load("D:\Cursos\Projetos\Jogo-de-F-sica\Musica\Musica_jogo.mp3")
 pygame.mixer.music.play(-1)  # Toca a música em loop infinito
 
 #Variaveis do jogo
+
 cursor_ativo = False
 lupa_x, lupa_y = 0, 0
 posicoes_lupas = {}
@@ -71,7 +73,7 @@ def processar_interecao(mouse_x, mouse_y, modo = "distancia", alvo_x = None, alv
         raise ValueError
 
 # Função para mostrar mensagem na tela
-def mostrar_mensagem(mensagem, menu_largura=None, menu_altura=None ,menu_x=None, menu_y=None, cor_borda=(255, 255, 255), cor_fundo=(0, 0, 0), cor_texto=(255, 255, 255)):
+def mostrar_mensagem(mensagem, menu_largura=None, menu_altura=None ,menu_x=None, menu_y=None, cor_borda=(255, 255, 255), cor_fundo=(0, 0, 0), cor_texto=(255, 255, 255), x_onset = 10, y_onset = 0):
     font = pygame.font.Font(None, 30)
     palavras = mensagem.split(' ')
     linhas = []
@@ -92,7 +94,7 @@ def mostrar_mensagem(mensagem, menu_largura=None, menu_altura=None ,menu_x=None,
     y_offset = menu_y + 10
     for linha in linhas:
         texto_mensagem = font.render(linha, True, cor_texto)
-        TELA.blit(texto_mensagem, (menu_x + 10, y_offset))
+        TELA.blit(texto_mensagem, (menu_x + x_onset, y_offset + y_onset))
         y_offset += font.get_linesize()
 
 # Função para mostrar pergunta na tela
@@ -141,11 +143,12 @@ def resolver_Circuito():
             # Lógica para fase 1: Seleção de resistores
             if fase == 1:
                 if evento.type == pygame.MOUSEBUTTONDOWN:
-                    btts_resistores = [(140, 225), (288, 226), (445, 224)]
+                    print("Clique do mouse:", evento.pos)
+                    btts_resistores = [(165, 225), (315, 225), (465, 223)]
                     mouse_x, mouse_y = evento.pos
                     # botões dos resistores (140, 225) (288, 226) (445, 224)
                     for x, y in btts_resistores:
-                        if processar_interecao(mouse_x, mouse_y, alvo_x=x, alvo_y=y, modo="raio", raio=15):
+                        if processar_interecao(mouse_x, mouse_y, alvo_x=x, alvo_y=y, modo="raio", raio=38):
                             if len(resistores_escolhidos) < 4:
                                 r = resistores_disponiveis[btts_resistores.index((x, y))]
                                 resistores_escolhidos.append(r)
@@ -159,12 +162,12 @@ def resolver_Circuito():
             elif fase == 2:
                 if evento.type == pygame.MOUSEBUTTONDOWN:
                     print("Clique do mouse:", evento.pos)
-                    btts_configuracao = [(246, 223), (415, 224)]
+                    btts_configuracao = [(245, 245), (415, 224)]
                     mouse_x, mouse_y = evento.pos
-                    if processar_interecao(mouse_x, mouse_y, alvo_x=246, alvo_y=223, modo="raio", raio=15):
+                    if processar_interecao(mouse_x, mouse_y, alvo_x=250, alvo_y=245, modo="raio", raio=50):
                         configuracao = "série"
                         fase = 3
-                    elif processar_interecao(mouse_x, mouse_y, alvo_x=415, alvo_y=224, modo="raio", raio=15):
+                    elif processar_interecao(mouse_x, mouse_y, alvo_x=416, alvo_y=245, modo="raio", raio=50):
                         configuracao = "paralelo"
                         fase = 3
 
@@ -174,16 +177,16 @@ def resolver_Circuito():
             TELA.blit(tela_atual, (0, 0))  # Restaura a tela anterior
             mostrar_mensagem("Escolha 4 resistores:", menu_largura=250, menu_altura=50, menu_x=(LARGURA - 250) // 2, menu_y=50)
             for i, r in enumerate(resistores_disponiveis):
-                mostrar_mensagem(f"{r} Ω", menu_largura=100, menu_altura=50, menu_x=(LARGURA - (len(resistores_disponiveis) * 150)) // 2 + i * 150, menu_y=200, cor_borda=(0, 0, 255), cor_fundo=(0, 0, 255), cor_texto=(255, 255, 255))
+                mostrar_mensagem(f"{r} Ω", menu_largura=75, menu_altura=50, menu_x=(LARGURA - 75) // 2 + (i - len(resistores_disponiveis) // 2) * 150, menu_y=200)
             mostrar_mensagem(f"Escolhidos: {resistores_escolhidos}", menu_largura=300, menu_altura=50, menu_x=(LARGURA - 300) // 2, menu_y=350, cor_borda=(0, 0, 0), cor_fundo=(255, 255, 255), cor_texto=(0, 0, 0))
-            mostrar_mensagem("Pressione Enter para continuar", menu_largura=400, menu_altura=50, menu_x=(LARGURA - 300) // 2, menu_y=400, cor_borda=(0, 0, 0), cor_fundo=(255, 255, 255), cor_texto=(0, 0, 0))
+            mostrar_mensagem("Pressione Enter para continuar", menu_largura=400, menu_altura=50, menu_x=(LARGURA - 400) // 2, menu_y=400, cor_borda=(0, 0, 0), cor_fundo=(255, 255, 255), cor_texto=(0, 0, 0))
         # Fase 2: Escolha de configuração
         elif fase == 2:
             TELA.fill((255, 255, 255))  # Preenche a tela com a cor branca
             TELA.blit(tela_atual, (0, 0))  # Restaura a tela anterior
             mostrar_mensagem("Escolha a configuração dos resistores:", menu_largura=400, menu_altura=50, menu_x=(LARGURA - 400) // 2, menu_y=50)
-            mostrar_mensagem("Série", menu_largura=100, menu_altura=50, menu_x=200, menu_y=200, cor_borda=(0, 0, 255), cor_fundo=(0, 0, 255), cor_texto=(255, 255, 255))
-            mostrar_mensagem("Paralelo", menu_largura=100, menu_altura=50, menu_x=(LARGURA // 2) + 50, menu_y=200, cor_borda=(0, 0, 255), cor_fundo=(0, 0, 255), cor_texto=(255, 255, 255))
+            mostrar_mensagem("Série", menu_largura=100, menu_altura=100, menu_x=200, menu_y=200, x_onset=23, y_onset= 28)
+            mostrar_mensagem("Paralelo", menu_largura=100, menu_altura=100, menu_x=(LARGURA // 2) + 50, menu_y=200, x_onset=8, y_onset= 28)
 
         # Fase 3: Resultado
         elif fase == 3:
@@ -202,19 +205,23 @@ def resolver_Circuito():
                 resultado = "Parabéns! A corrente é 8A. A porta foi destrancada!"
             else:
                 resultado = f"Corrente: {corrente}A. Tente novamente."
-            mostrar_mensagem(resultado, menu_largura=500, menu_altura=100, menu_x=(LARGURA - 500) // 2, menu_y=(ALTURA - 100) // 2 - 50, cor_borda=(0, 0, 0), cor_fundo=(255, 255, 255), cor_texto=(0, 0, 0))
-            mostrar_mensagem("Pressione R para sair.", menu_largura=500, menu_altura=50, menu_x=(LARGURA - 500) // 2, menu_y=(ALTURA - 50) // 2 + 50, cor_borda=(0, 0, 0), cor_fundo=(255, 255, 255), cor_texto=(0, 0, 0))
+            mostrar_mensagem(resultado, menu_largura=550, menu_altura=100, menu_x=(LARGURA - 550) // 2, menu_y=(ALTURA - 100) // 2 - 50, cor_borda=(0, 0, 0), cor_fundo=(255, 255, 255), cor_texto=(0, 0, 0))
+            if not sucesso:
+                mostrar_mensagem("Pressione R para sair.", menu_largura=550, menu_altura=50, menu_x=(LARGURA - 550) // 2, menu_y=(ALTURA - 50) // 2 + 50, cor_borda=(0, 0, 0), cor_fundo=(255, 255, 255), cor_texto=(0, 0, 0))
 
             pygame.display.flip()
-            pygame.time.delay(3000)
-            return sucesso
+            pygame.time.delay(5000) # Aguarda 5 segundos
+            print("Fim do minigame")
+            if sucesso:
+                return sucesso
 
         pygame.display.flip()
 
 #Menu do jogo
 def menu_principal():
     #Carregar a imagem de fundo
-    fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Menu.png")  # Substitua por sua imagem de fundo
+    #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Menu.png")  # Substitua por sua imagem de fundo
+    fundo = pygame.image.load("Imagens\\Menu.png")  # Substitua por sua imagem de fundo
     fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
     TELA.blit(fundo, (0, 0)) # Desenha a imagem de fundo na tela
 
@@ -226,47 +233,36 @@ def menu_principal():
         titulo = font.render("Escape Room de Física", True, (255, 255, 255))
         TELA.blit(titulo, (LARGURA // 2 - titulo.get_width() // 2, ALTURA // 4))
 
-        font = pygame.font.Font(None, 56)
-        botao_jogar = font.render("Jogar", True, (255, 255, 255))
-        botao_sair = font.render("Sair", True, (255, 255, 255, 0))
 
-        botao_jogar_rect = botao_jogar.get_rect(center=(LARGURA // 2, (ALTURA // 2) -50))
-        botao_sair_rect = botao_sair.get_rect(center=(LARGURA // 2, (ALTURA // 2) + 10))
+        #botao_jogar_rect = botao_jogar.get_rect(center=(LARGURA // 2, (ALTURA // 2) -50))
+        #botao_sair_rect = botao_sair.get_rect(center=(LARGURA // 2, (ALTURA // 2) + 10))
 
 
-        # Verificar se o mouse está dentro do raio de interação da lupa
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        if processar_interecao(mouse_x, mouse_y, alvo_x=LARGURA // 2, alvo_y=(ALTURA // 2) -50, modo="raio"):
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-        else:
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-
-        if processar_interecao(mouse_x, mouse_y, alvo_x=LARGURA // 2, alvo_y=(ALTURA // 2) + 10, modo="raio"):
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-        else:
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-
-        TELA.blit(botao_jogar, botao_jogar_rect)
-        TELA.blit(botao_sair, botao_sair_rect)
-
+        # Verificar o clique do mouse
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif evento.type == pygame.MOUSEBUTTONDOWN:
-                if botao_jogar_rect.collidepoint(evento.pos):
-                    rodando = False
-                elif botao_sair_rect.collidepoint(evento.pos):
+                rodando = False
+            if evento.type == pygame.MOUSEBUTTONDOWN:
+                print(f'Clique do mouse: {evento.pos}')
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                if processar_interecao(mouse_x, mouse_y, alvo_x=328, alvo_y=285, modo="raio", raio=45):
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                    fase_1()
                     pygame.quit()
                     sys.exit()
+       
 
         pygame.display.flip()
 
 
 #Fase 1 QUARTO
 def fase_1():
+    #começa a contar o tempo
+
+
     # Carregar a imagem de fundo
-    fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Fisica_Quarto.png")  # Substitua por sua imagem de fundo
+    fundo = pygame.image.load("Imagens\\Fisica_Quarto.png")
+    #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Fisica_Quarto.png")  # Substitua por sua imagem de fundo
     fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
     TELA.blit(fundo, (0, 0)) # Desenha a imagem de fundo na tela
     
@@ -309,7 +305,7 @@ def fase_1():
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 print(f'Clique do mouse: {evento.pos}')
                 mouse_x, mouse_y = evento.pos  # Pega a posição do clique
-                if processar_interecao(mouse_x, mouse_y, modo="clique_fora", alvo_x=alvo_x, alvo_y=alvo_y, posicoes_lupas=posicoes_lupas):
+                if processar_interecao(mouse_x, mouse_y, modo="clique_fora", alvo_x=alvo_x, alvo_y=alvo_y, posicoes_lupas=posicoes_lupas) and mensagem_ativa != mensagens["gaveta"] and not porta_aberta:
                     print("Clique fora da lupa")
                     mensagem_ativa = ""
                     lupa_Iteracao.set_alpha(0)  # Torna a lupa invisível
@@ -339,18 +335,17 @@ def fase_1():
                 global resposta_usuario
             if evento.type == pygame.KEYDOWN and  mensagem_ativa == mensagens["gaveta"] and not gaveta_aberta:
                 if evento.key == pygame.K_RETURN or evento.key == pygame.K_KP_ENTER:  # Quando pressionar Enter ou Enter do teclado numérico
-                    if resposta_usuario == "0.216":  # Verifica se a resposta está correta
+                    if resposta_usuario == "0.216A":  # Verifica se a resposta está correta
                         contador += 1  # Incrementa o contador
                         gaveta_aberta = True; #Gaveta é aberta
                         mensagem_correta = True  # Ativa a exibição de resposta certa 
                         tempo_mensagem = pygame.time.get_ticks()  # Armazena o tempo atual
                         print("Resposta correta!")
-                        mensagens["gaveta"] = "O Desafio foi resolvido"
                         mensagem_ativa = ""
                         resposta_usuario = ""
                     #pergunta_ativa = False  # Fecha a janela de pergunta
                     else:
-                        mensagem_ativa = "Código incorreto!Você é burro"
+                        mensagem_ativa = "Código incorreto!"
                 elif evento.key == pygame.K_BACKSPACE:
                     resposta_usuario = resposta_usuario[:-1]  # Apaga um caractere
                 elif evento.unicode.isnumeric() or evento.unicode == ".":  # Apenas números e ponto
@@ -406,18 +401,15 @@ def fase_1():
             mensagem_ativa = ""
             pygame.display.flip()
             sleep(4)
-            fase_2()
-            porta_aberta = True
-            mensagens["porta"] = "Agora a porta está aberta"
+            sucess = fase_2()
+            if sucess:
+                mensagens["gaveta"] = "O Desafio foi resolvido"
+                porta_aberta = True
+                mensagens["porta"] = "Agora a porta está aberta"
 
 
             if pygame.time.get_ticks() - tempo_mensagem > DURACAO_MENSAGEM:
                 mensagem_correta = False  # Para de exibir a mensagem
-        
-        # Exibir o contador
-        font = pygame.font.Font(None, 36)
-        texto_contador = font.render(f"Contador: {contador}", True, (255, 255, 255))
-        TELA.blit(texto_contador, (10, 10))
 
 
         # Atualizar a tela
@@ -426,8 +418,8 @@ def fase_1():
 #Fase 2 GAVETA
 def fase_2():
     # Carregar a imagem de fundo
-    #fundo = pygame.image.load("Imagens\Gaveta.png")  # Substitua por sua imagem de fundo
-    fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Gaveta.png")  # Substitua por sua imagem de fundo
+    fundo = pygame.image.load("Imagens\\Gaveta.png")  # Substitua por sua imagem de fundo
+    #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Gaveta.png")  # Substitua por sua imagem de fundo
     fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
     TELA.blit(fundo, (0, 0)) # Desenha a imagem de fundo na tela
     
@@ -457,10 +449,14 @@ def fase_2():
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 rodando = False
+
+            if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 3:
+                return False
+
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 print(f'Clique do mouse: {evento.pos}')
                 mouse_x, mouse_y = evento.pos  # Pega a posição do clique
-                if processar_interecao(mouse_x, mouse_y, modo="clique_fora", alvo_x=alvo_x, alvo_y=alvo_y, posicoes_lupas=posicoes_lupas):
+                if processar_interecao(mouse_x, mouse_y, modo="clique_fora", alvo_x=alvo_x, alvo_y=alvo_y, posicoes_lupas=posicoes_lupas) and mensagem_ativa != mensagens["bateria"]:
                     print("Clique fora da lupa")
                     mensagem_ativa = ""
                     lupa_Iteracao.set_alpha(0)  # Torna a lupa invisível
@@ -488,7 +484,7 @@ def fase_2():
                 global resposta_usuario
             if evento.type == pygame.KEYDOWN and  mensagem_ativa == mensagens["bateria"] and not gaveta_aberta:
                 if evento.key == pygame.K_RETURN or evento.key == pygame.K_KP_ENTER:  # Quando pressionar Enter ou Enter do teclado numérico
-                    if resposta_usuario == "0.00001":  # Verifica se a resposta está correta
+                    if resposta_usuario == "0.00001T":  # Verifica se a resposta está correta
                         contador += 1  # Incrementa o contador
                         gaveta_aberta = True; #Gaveta é aberta
                         mensagem_correta = True  # Ativa a exibição de resposta certa 
@@ -499,7 +495,7 @@ def fase_2():
                         resposta_usuario = ""
                     #pergunta_ativa = False  # Fecha a janela de pergunta
                     else:
-                        mensagem_ativa = "Código incorreto!Você é burro"
+                        mensagem_ativa = "Código incorreto!"
                 elif evento.key == pygame.K_BACKSPACE:
                     resposta_usuario = resposta_usuario[:-1]  # Apaga um caractere
                 elif evento.unicode.isnumeric() or evento.unicode == ".":  # Apenas números e ponto
@@ -548,16 +544,13 @@ def fase_2():
             mostrar_mensagem("O circuito esta emitindo um campo magnetico que abre a porta do quarto")
             pygame.display.flip()
             sleep(4)
-            rodando = False
+            return True
 
 
             if pygame.time.get_ticks() - tempo_mensagem > DURACAO_MENSAGEM:
                 mensagem_correta = False  # Para de exibir a mensagem
         
-        # Exibir o contador
-        font = pygame.font.Font(None, 36)
-        texto_contador = font.render(f"Contador: {contador}", True, (255, 255, 255))
-        TELA.blit(texto_contador, (10, 10))
+
 
         # Atualizar a tela
         pygame.display.flip()  
@@ -565,8 +558,8 @@ def fase_2():
 #Fase 3 SALA
 def fase_3():
     # Carregar a imagem de fundo
-    #fundo = pygame.image.load("Imagens\Gaveta.png")  # Substitua por sua imagem de fundo
-    fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Sala3.png")  # Substitua por sua imagem de fundo
+    fundo = pygame.image.load("Imagens\\Sala3.png")  # Substitua por sua imagem de fundo
+    #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Sala3.png")  # Substitua por sua imagem de fundo
     fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
     TELA.blit(fundo, (0, 0)) # Desenha a imagem de fundo na tela
     
@@ -599,10 +592,10 @@ def fase_3():
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 rodando = False
+            # Detectar clique do mouse
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 print(f'Clique do mouse: {evento.pos}')
                 mouse_x, mouse_y = evento.pos  # Pega a posição do clique
-
                 if processar_interecao(mouse_x, mouse_y, modo="clique_fora", alvo_x=alvo_x, alvo_y=alvo_y, posicoes_lupas=posicoes_lupas):
                     print("Clique fora da lupa")
                     mensagem_ativa = ""
@@ -628,22 +621,26 @@ def fase_3():
                                 mensagem_ativa = mensagens["mesa"]
                             elif local == "maleta" and maleta:
                                 mensagem_ativa = mensagens["maleta"]
+                                mensagens["mesa"] = "Agora podemos analisar o circuito"
 
 
             # Obter a posição do mouse
             mouse_x, mouse_y = pygame.mouse.get_pos()
 
             # Verificar se o mouse está dentro do raio de interação da lupa
-            for alvo_x, alvo_y in posicoes_lupas.values():
-                if processar_interecao(mouse_x, mouse_y, alvo_x=alvo_x, alvo_y=alvo_y, modo="raio"):
-                    lupa_Iteracao.set_alpha(255)  # Tornar a lupa mais visível
-                    lupa_x,lupa_y = alvo_x, alvo_y
-                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-                    break
-                else:
-                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-                    TELA.blit(fundo, (0, 0))  # Desenha a imagem de fundo na tela
-                    lupa_Iteracao.set_alpha(0)  # Manter opacidade baixa
+            if not mensagem_ativa:
+                for local, (alvo_x, alvo_y) in posicoes_lupas.items():
+                    if processar_interecao(mouse_x, mouse_y, alvo_x=alvo_x, alvo_y=alvo_y, modo="raio"):
+                        lupa_Iteracao.set_alpha(255)  # Tornar a lupa mais visível
+                        lupa_x, lupa_y = alvo_x, alvo_y
+                        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                        break
+                    else:
+                        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                        TELA.blit(fundo, (0, 0))  # Desenha a imagem de fundo na tela
+                        lupa_Iteracao.set_alpha(0)  # Manter opacidade baixa
+            else:
+                lupa_Iteracao.set_alpha(0)  # Torna a lupa invisível
 
         # Desenhar a lupa visìvel
         TELA.blit(lupa_Iteracao, (lupa_x, lupa_y))
@@ -652,8 +649,18 @@ def fase_3():
         if mensagem_ativa:
             TELA.blit(fundo, (0, 0))  # Desenha a imagem de fundo na tela
             mostrar_mensagem(mensagem_ativa)
-            TELA.blit(lupa_Iteracao, (lupa_x, lupa_y))  # Desenha a lupa visível
+            pygame.display.flip() 
 
+            if maleta and mensagem_ativa == "Agora podemos analisar o circuito" and not porta_aberta:
+                sleep(4)
+                sucess = fase_4()
+                if sucess:
+                    porta_aberta = True
+                    mensagens["porta"] = "Agora a porta está aberta"
+            if porta_aberta and mensagem_ativa == "Agora a porta está aberta":
+                sleep(4)
+                tela_final()
+                pygame.quit()
 
             if mensagem_ativa in tempos_mensagens:
                 # Verifica se a mensagem ativa NÃO é a da gaveta
@@ -669,10 +676,11 @@ def fase_3():
 #Fase 4 CIRCUITO
 def fase_4():
     # Carregar a imagem de fundo
-    #fundo = pygame.image.load("Imagens\Gaveta.png")  # Substitua por sua imagem de fundo
-    fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Circuito.png")  # Substitua por sua imagem de fundo
+    fundo = pygame.image.load("Imagens\\Circuito.png")  # Substitua por sua imagem de fundo
+    #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Circuito.png")  # Substitua por sua imagem de fundo
     fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
     TELA.blit(fundo, (0, 0)) # Desenha a imagem de fundo na tela
+
 
 
     # Variaveis
@@ -708,7 +716,11 @@ def fase_4():
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 rodando = False
-
+            
+            # Detectar clique do mouse direito
+            if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 3:
+                return False
+      
             
             # Detectar clique do mouse
             if evento.type == pygame.MOUSEBUTTONDOWN:
@@ -767,7 +779,10 @@ def fase_4():
 
             # Exibe se for o circuito
             if mensagem_ativa == mensagens["circuito"]:
-                resolver_Circuito()
+                sucess = resolver_Circuito()
+                mensagem_ativa = ""
+                if sucess:
+                    return True
 
 
             if mensagem_ativa in tempos_mensagens:
@@ -789,21 +804,33 @@ def fase_4():
 
             if pygame.time.get_ticks() - tempo_mensagem > DURACAO_MENSAGEM:
                 mensagem_correta = False  # Para de exibir a mensagem
-        
-        # Exibir o contador
-        font = pygame.font.Font(None, 36)
-        texto_contador = font.render(f"Contador: {contador}", True, (255, 255, 255))
-        TELA.blit(texto_contador, (10, 10))
 
 
         # Atualizar a tela
         pygame.display.flip()
 
+# Tela Final
+def tela_final():
+    # Carregar a imagem de fundo
+    fundo = pygame.image.load("Imagens\\Final.png")  # Substitua por sua imagem de fundo
+    #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Final.png")  # Substitua por sua imagem de fundo
+    fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
+    TELA.blit(fundo, (0, 0)) # Desenha a imagem de fundo na tela
 
+    # Variaveis
+    global contador
+    global texto_contador
 
-#menu_principal()
-#fase_3()
-fase_4()
+    # Atualizar a tela
+    pygame.display.flip()
+
+    # Aguardar 5 segundos
+    pygame.time.delay(10000)
+    pygame.quit()
+    sys.exit()
+
+#inicalizar o Jogo
+menu_principal()
 
 # Finalizar o Pygame
 pygame.quit()
