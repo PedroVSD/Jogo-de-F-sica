@@ -360,7 +360,7 @@ def fase_1():
                 global resposta_usuario
             if evento.type == pygame.KEYDOWN and  mensagem_ativa == mensagens["gaveta"] and not gaveta_aberta:
                 if evento.key == pygame.K_RETURN or evento.key == pygame.K_KP_ENTER:  # Quando pressionar Enter ou Enter do teclado numérico
-                    if resposta_usuario == "0.216A":  # Verifica se a resposta está correta
+                    if resposta_usuario == "0.216":  # Verifica se a resposta está correta
                         contador += 1  # Incrementa o contador
                         gaveta_aberta = True; #Gaveta é aberta
                         mensagem_correta = True  # Ativa a exibição de resposta certa 
@@ -515,7 +515,7 @@ def fase_2():
                 global resposta_usuario
             if evento.type == pygame.KEYDOWN and  mensagem_ativa == mensagens["bateria"] and not gaveta_aberta:
                 if evento.key == pygame.K_RETURN or evento.key == pygame.K_KP_ENTER:  # Quando pressionar Enter ou Enter do teclado numérico
-                    if resposta_usuario == "0.00001T":  # Verifica se a resposta está correta
+                    if resposta_usuario == "0.00001":  # Verifica se a resposta está correta
                         contador += 1  # Incrementa o contador
                         gaveta_aberta = True; #Gaveta é aberta
                         mensagem_correta = True  # Ativa a exibição de resposta certa 
