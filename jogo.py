@@ -1,7 +1,10 @@
 import pygame
 import sys
 import math
+import os
+import sys
 from time import sleep
+
 
 # Inicializar o Pygame
 pygame.init()
@@ -13,7 +16,12 @@ pygame.display.set_caption("Escape Room de Física")  # Título da janela
 
 
 # Carregar a imagem da lupa
-lupa_Iteracao = pygame.image.load("Imagens\\lupa.png")  # Substitua por sua imagem
+if getattr(sys, 'frozen', False):
+    base_path = sys._MEIPASS
+else:
+    basepath = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(base_path, 'Imagens\\lupa.png')
+lupa_Iteracao = pygame.image.load(file_path)  # Substitua por sua imagem
 #lupa_Iteracao = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\lupa.png")  # Substitua por sua imagem
 lupa_Iteracao = pygame.transform.scale(lupa_Iteracao, (25, 25))  # Redimensiona para 25x25 pixels
 lupa_Iteracao.set_alpha(0)  # 0 é totalmente transparente inicialmente
@@ -26,7 +34,12 @@ tempos_mensagens = {}
 #Mensagens associadas
 
 #Carrega a musica
-pygame.mixer.music.load("Musica\\Musica_jogo.mp3")
+if getattr(sys, 'frozen', False):
+    base_path = sys._MEIPASS
+else:
+    basepath = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(base_path, 'Musica\\Musica_jogo.mp3')
+pygame.mixer.music.load(file_path)
 #pygame.mixer.music.load("D:\Cursos\Projetos\Jogo-de-F-sica\Musica\Musica_jogo.mp3")
 pygame.mixer.music.play(-1)  # Toca a música em loop infinito
 
@@ -221,7 +234,13 @@ def resolver_Circuito():
 def menu_principal():
     #Carregar a imagem de fundo
     #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Menu.png")  # Substitua por sua imagem de fundo
-    fundo = pygame.image.load("Imagens\\Menu.png")  # Substitua por sua imagem de fundo
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        basepath = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_path, 'Imagens\\Menu.png')
+    
+    fundo = pygame.image.load(file_path)  # Substitua por sua imagem de fundo
     fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
     TELA.blit(fundo, (0, 0)) # Desenha a imagem de fundo na tela
 
@@ -261,7 +280,13 @@ def fase_1():
 
 
     # Carregar a imagem de fundo
-    fundo = pygame.image.load("Imagens\\Fisica_Quarto.png")
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        basepath = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_path, 'Imagens\\Fisica_Quarto.png')
+
+    fundo = pygame.image.load(file_path)
     #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Fisica_Quarto.png")  # Substitua por sua imagem de fundo
     fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
     TELA.blit(fundo, (0, 0)) # Desenha a imagem de fundo na tela
@@ -418,7 +443,13 @@ def fase_1():
 #Fase 2 GAVETA
 def fase_2():
     # Carregar a imagem de fundo
-    fundo = pygame.image.load("Imagens\\Gaveta.png")  # Substitua por sua imagem de fundo
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        basepath = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_path, 'Imagens\\Gaveta.png')
+
+    fundo = pygame.image.load(file_path)  # Substitua por sua imagem de fundo
     #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Gaveta.png")  # Substitua por sua imagem de fundo
     fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
     TELA.blit(fundo, (0, 0)) # Desenha a imagem de fundo na tela
@@ -557,8 +588,16 @@ def fase_2():
 
 #Fase 3 SALA
 def fase_3():
+
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        basepath = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_path, 'Imagens\\Sala3.png')
+
+
     # Carregar a imagem de fundo
-    fundo = pygame.image.load("Imagens\\Sala3.png")  # Substitua por sua imagem de fundo
+    fundo = pygame.image.load(file_path)  # Substitua por sua imagem de fundo
     #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Sala3.png")  # Substitua por sua imagem de fundo
     fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
     TELA.blit(fundo, (0, 0)) # Desenha a imagem de fundo na tela
@@ -676,7 +715,13 @@ def fase_3():
 #Fase 4 CIRCUITO
 def fase_4():
     # Carregar a imagem de fundo
-    fundo = pygame.image.load("Imagens\\Circuito.png")  # Substitua por sua imagem de fundo
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        basepath = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(base_path, 'Imagens\\Circuito.png')
+
+    fundo = pygame.image.load(file_path)  # Substitua por sua imagem de fundo
     #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Circuito.png")  # Substitua por sua imagem de fundo
     fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
     TELA.blit(fundo, (0, 0)) # Desenha a imagem de fundo na tela
@@ -812,7 +857,14 @@ def fase_4():
 # Tela Final
 def tela_final():
     # Carregar a imagem de fundo
-    fundo = pygame.image.load("Imagens\\Final.png")  # Substitua por sua imagem de fundo
+        # Carregar a imagem de fundo
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        basepath = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(base_path, 'Imagens\\Final.png')
+
+    fundo = pygame.image.load(file_path)  # Substitua por sua imagem de fundo
     #fundo = pygame.image.load("D:\Cursos\Projetos\Jogo-de-F-sica\Imagens\Final.png")  # Substitua por sua imagem de fundo
     fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))  # Ajusta ao tamanho da tela
     TELA.blit(fundo, (0, 0)) # Desenha a imagem de fundo na tela
